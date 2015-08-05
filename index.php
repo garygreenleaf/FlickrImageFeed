@@ -15,15 +15,39 @@ if(isset($_GET['search'])){
 
 } else {
 
-  //$searchterms  = $now->format('ga').", ";
-  //$searchterms .= $now->format('H:00').", ";
   $searchterms = $now->format('H:i');
 
 }
 
 //photo search
-$photos = $f->photos_search(array("tags"=> $searchterms, "tag_mode"=>"any"));
-$photo = $photos['photo']['0'];
+$photos = $f->photos_search(array("tags"=> $searchterms, "tag_mode"=>"any", "content_type"=>1, "safe_search"=>1, "media"=>"photos", "extras"=>"url_l"));
+
+// pull an image at random
+$rand = rand(1,count($photos['photo']));
+$i=1;
+
+foreach ($photos['photo'] as $photo) {
+
+  if($i == $rand){
+
+    $displayphoto = $photo;
+
+  }
+  $i++;
+
+}
+
+
+// grab the refresh if set
+if(isset($_GET['refresh'])){
+
+  $refresh = $_GET['refresh'];
+
+} else {
+
+  $refresh = 60;
+
+}
 ?>
 
 <!DOCTYPE html>
@@ -34,7 +58,7 @@ $photo = $photos['photo']['0'];
     <meta charset="UTF-8">
 
     <title>Rethink.Gallery</title>
-    <meta http-equiv="refresh" content="60" />
+    <meta http-equiv="refresh" content="<?php print $refresh ?>" />
 
     <style>
 
@@ -47,26 +71,26 @@ $photo = $photos['photo']['0'];
           vertical-align: baseline;
       }
 
-      body {
-          position: relative;
-          width:100%;
-          height:100vh;
-          overflow: hidden;
-          background: black;
-      }
-
-      #title {
-          background: #000;
-          color:#fff;
-          text-align: center;
-          padding:10px;
-          font-size: 1.2em;
-          font-weight: bold;
-      }
-
       img {
-          display: block;
-          margin:0 auto;
+        /* Set rules to fill background */
+        min-height: 100%;
+        min-width: 1024px;
+
+        /* Set up proportionate scaling */
+        width: 100%;
+        height: auto;
+
+        /* Set up positioning */
+        position: fixed;
+        top: 0;
+        left: 0;
+      }
+
+      @media screen and (max-width: 1024px) { /* Specific to this particular image */
+        img {
+          left: 50%;
+          margin-left: -512px;   /* 50% */
+        }
       }
 
     </style>
@@ -75,8 +99,7 @@ $photo = $photos['photo']['0'];
 
   <body>
 
-    <div id="title">Rethink.Gallery - <?php print $searchterms?></div>
-    <img src='https://farm<?php print $photo['farm']?>.staticflickr.com/<?php print $photo['server'] ?>/<?php print $photo['id'] ?>_<?php print $photo['secret']?>_b.jpg' />
+    <img src='<?php print $displayphoto['url_l']?>' />
 
   </body>
 
